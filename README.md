@@ -29,6 +29,19 @@ This configuration needs to be added in the **appsettings.json** file.
 
 ### What information should be added in the appsettings.json file
 
-In the *SettingsFileExample* there are 3 files which corresponds to the each deploy option available. Copy the content of the file which corresponds to the deploy option desired and paste it into **appsettings.json** file.
+In the *SettingsFileExample* folder there are 3 files which corresponds to the each deploy option available. Copy the content of the file which corresponds to the deploy option desired and paste it into **appsettings.json** file.
+
+#### Azure Blob Deploy mode
+In order to use the Azure deploy mode you need to add Azure **Storage Account Name** and **Storage Account Key**. This information set in the **appsettings** file in **"ConfigurationSettings"** object or in the **System environment variables**.
+
+#### System environment variables
+If you choose the add the settings in the system variables please remove the **ConfigurationSettings object** from the **appsettings** file and create following **Environment Variables**: 
+1. APPSTOREINTEGRATION_BLOBNAME (blob name value should contain only lower case letters)
+2. APPSTOREINTEGRATION_CONFIGFILENAME
+3. APPSTOREINTEGRATION_STORAGE_ACCOUNTKEY
+4. APPSTOREINTEGRATION_STORAGE_ACCOUNTNAME
+
+
+
 
 
