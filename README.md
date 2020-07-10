@@ -6,6 +6,8 @@ Home for the appstore service used from Studio 2021 onwards for searching and in
 1. [Intro](#intro)
 2. [Getting started](#getting-started)
 3. [How to configure the service](#service-cofig)
+4. [How to run the service](#service-run)
+5. [How to host a service on IIS](#service-IIS)
 
 ## Intro
 This service allow users to create a **Private AppStore** which can be used in SDL Trados Studio to install and update plugins internal plugins which are not released on the AppStore web site.
@@ -22,8 +24,8 @@ In the **release section** is available an archive with the latest version of th
 ## How to configure the service
 Service can be configured to read the **json file with the plugins info** in 3 ways:
 1. From an **Azure Storage** account. That means the json file is stored in a Blob in Azure.
-2. Fom an **Local Path** on the server.
-3. From an **Network file path**.
+2. From a **Local Path** on the server.
+3. From a **Network file path**.
 
 This configuration needs to be added in the **appsettings.json** file.
 
@@ -45,7 +47,6 @@ If you choose the add the settings in the system variables please remove the **C
 ### ServerFilePath and NetworkFilePath Deploy mode
 In order to use one of this deploy option in the **appsettings.json** or in the **Environment Variables**, local folder path" and configuration file name should be added.
 
-**ServerFilePath** config file
 ```
 //Replace with the local path on the server where the json with the plugins info is saved
   "ConfigurationSettings": {
@@ -54,6 +55,27 @@ In order to use one of this deploy option in the **appsettings.json** or in the 
   }
   //If the folder or file does not exist in the specified location they'll be created
   ```
-  In the archive "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" in the existing appsettings.json**. 
+  **ServerFilePath** config file
+  In the archive "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" in the existing appsettings.json**.
+  
+  **NetworkFilePath** config file
+ Steps described above in the Server File Path case applies to the Network deploy case, however the value for "LocalFilePath" property the path will point to a network file path.
+Example: "\\\\Networkname\\Folder\\PluginsConfig"
+
+If you don't want to specify this properties in the file following properties should be added in **System environment variables**:
+
+ ```
+1. APPSTOREINTEGRATION_LOCAL_FOLDERPATH
+2. APPSTOREINTEGRATION_CONFIGFILENAME
+```
+
+## How to run the service
+
+- Open a comand prompt window and navigate to the folder where the server is located. 
+- Type following command **AppStoreIntegrationService.exe**
+
+## How to host a service on IIS
+A detaild explanation on how to host on IIS can be found [here](https://www.guru99.com/deploying-website-iis.html).
+
 
 
