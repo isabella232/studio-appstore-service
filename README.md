@@ -36,11 +36,12 @@ In order to use the Azure deploy mode you need to add Azure **Storage Account Na
 
 #### System environment variables
 If you choose the add the settings in the system variables please remove the **ConfigurationSettings object** from the **appsettings** file if you previously added it and create following **Environment Variables**: 
+```
 1. APPSTOREINTEGRATION_BLOBNAME (blob name value should contain only lower case letters)
 2. APPSTOREINTEGRATION_CONFIGFILENAME
 3. APPSTOREINTEGRATION_STORAGE_ACCOUNTKEY
 4. APPSTOREINTEGRATION_STORAGE_ACCOUNTNAME
-
+```
 ### ServerFilePath and NetworkFilePath Deploy mode
 In order to use one of this deploy option in the **appsettings.json** or in the **Environment Variables**, local folder path" and configuration file name should be added.
 
