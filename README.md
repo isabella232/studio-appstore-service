@@ -55,11 +55,13 @@ In order to use one of this deploy option in the **appsettings.json** or in the 
   }
   //If the folder or file does not exist in the specified location they'll be created
   ```
-  **ServerFilePath** config file
-  In the archive "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" in the existing appsettings.json**.
+**ServerFilePath** config file
+ 
+In the archive "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" in the existing appsettings.json**.
   
   **NetworkFilePath** config file
- Steps described above in the Server File Path case applies to the Network deploy case, however the value for "LocalFilePath" property the path will point to a network file path.
+  
+Steps described above in the Server File Path case applies to the Network deploy case, however the value for "LocalFilePath" property the path will point to a network file path.
 Example: "\\\\Networkname\\Folder\\PluginsConfig"
 
 If you don't want to specify this properties in the file following properties should be added in **System environment variables**:
