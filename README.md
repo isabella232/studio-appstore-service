@@ -1,5 +1,5 @@
 # studio-appstore-service
-Home for the appstore service used from Studio 2021 onwards for searching and installing plugins.
+This is the home for the appstore service used by SDL Trados Studio 2021 onwards for searching and installing plugins.
 
 ## Table of contents 
 
@@ -10,42 +10,42 @@ Home for the appstore service used from Studio 2021 onwards for searching and in
 5. [How to host a service on IIS](#service-IIS)
 
 ## Intro
-This service allow users to create a **Private AppStore** which can be used in SDL Trados Studio to install and update plugins internal plugins which are not released on the AppStore web site.
+This service allows users to create a **Private AppStore** which can be used in SDL Trados Studio to install and update plugins whether they are released on the AppStore web site or not.
 
-The service reads a *Json* with a predefined structure with all the plugins which well be available in SDL Trados Studio.
+The service reads a *Json* with a predefined structure containing details for all the plugins which will be made available in SDL Trados Studio.
 
 ## Getting started
-In the **release section** is available an archive with the latest version of the Service. This archive contains following items:
+In the **release section** there is an archive available for the latest version of the Service. This archive contains the following items:
 1. The executable file of the service *AppStoreIntegrationService.exe*.
-2. Configuration file used by the service, which needs to be filled by each user *appsettings.json*.
-3. An folder called *PluginsConfig* which have an example for the json file used by the Service. 
-4. An folder called *SettingsFileExample* which have 3 files with the settings needed by the service based on the Deploy Mode.
+2. A configuration file used by the service which needs to be completed by each user *appsettings.json*.
+3. A folder called *PluginsConfig* which contains an example of the json file used by the Service. 
+4. A folder called *SettingsFileExample* which has 3 files containing the settings needed by the service based on the Deploy Mode.
 
 ## How to configure the service
-Service can be configured to read the **json file with the plugins info** in 3 ways:
+The service can be configured to read the **json file with the plugins info** in 3 ways:
 1. From an **Azure Storage** account. That means the json file is stored in a Blob in Azure.
 2. From a **Local Path** on the server.
 3. From a **Network file path**.
 
-This configuration needs to be added in the **appsettings.json** file.
+The configuration to support this needs to be added in the **appsettings.json** file.
 
 ### What information should be added in the appsettings.json file
 
-In the *SettingsFileExample* folder there are 3 files which corresponds to the each deploy option available. Copy the content of the file which corresponds to the deploy option desired and paste it into **appsettings.json** file.
+In the *SettingsFileExample* folder there are 3 files which correspond to each deploy option available. Copy the content of the file which corresponds to the desired deploy option and paste it into the **appsettings.json** file.
 
 ### Azure Blob Deploy mode
-In order to use the Azure deploy mode you need to add Azure **Storage Account Name** and **Storage Account Key**. This information set in the **appsettings** file in **"ConfigurationSettings"** object or in the **System environment variables**.
+In order to use the Azure deploy mode you need to add the Azure **Storage Account Name** and the **Storage Account Key**. This information needs to be written into the **"ConfigurationSettings"** object in the **appsettings** file or in the **System environment variables**.
 
 #### System environment variables
-If you choose the add the settings in the system variables please remove the **ConfigurationSettings object** from the **appsettings** file if you previously added it and create following **Environment Variables**: 
+If you choose the add the settings in the system variables please make sure you remove the **ConfigurationSettings object** from the **appsettings** file (if you had added it) and create the following **Environment Variables**: 
 ```
-1. APPSTOREINTEGRATION_BLOBNAME (blob name value should contain only lower case letters)
+1. APPSTOREINTEGRATION_BLOBNAME (blob name value should only contain lower case letters)
 2. APPSTOREINTEGRATION_CONFIGFILENAME
 3. APPSTOREINTEGRATION_STORAGE_ACCOUNTKEY
 4. APPSTOREINTEGRATION_STORAGE_ACCOUNTNAME
 ```
 ### ServerFilePath and NetworkFilePath Deploy mode
-In order to use one of this deploy option in the **appsettings.json** or in the **Environment Variables**, local folder path" and configuration file name should be added.
+In order to use one of these deploy options in the **appsettings.json**, or in the **Environment Variables**, the local folder path" and configuration file name should be added.
 
 ```
 //Replace with the local path on the server where the json with the plugins info is saved
@@ -57,14 +57,14 @@ In order to use one of this deploy option in the **appsettings.json** or in the 
   ```
 **ServerFilePath** config file
  
-In the archive "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" in the existing appsettings.json**.
+In the archive, the "PluginsConfig" folder corresponds to the "LocalFolderPath" set in the example settings file. **If you don't want to set the json file in another path just edit the existing json file from the folder and paste the "ConfigurationSettings" into the existing appsettings.json**.
   
   **NetworkFilePath** config file
   
-Steps described above in the Server File Path case applies to the Network deploy case, however the value for "LocalFilePath" property the path will point to a network file path.
+The steps described in the Server File Path case above apply to the Network deploy case, however the value used for the "LocalFilePath" property should point to a network file path.
 Example: "\\\\Networkname\\Folder\\PluginsConfig"
 
-If you don't want to specify this properties in the file following properties should be added in **System environment variables**:
+If you don't want to specify this property in the file the following properties should be added in the **System environment variables**:
 
  ```
 1. APPSTOREINTEGRATION_LOCAL_FOLDERPATH
@@ -74,10 +74,10 @@ If you don't want to specify this properties in the file following properties sh
 ## How to run the service
 
 - Open a comand prompt window and navigate to the folder where the server is located. 
-- Type following command **AppStoreIntegrationService.exe**
+- Type the following command **AppStoreIntegrationService.exe**
 
 ## How to host a service on IIS
-A detaild explanation on how to host on IIS can be found [here](https://www.guru99.com/deploying-website-iis.html).
+A detailed explanation on how to host on IIS can be found [here](https://www.guru99.com/deploying-website-iis.html).
 
 
 
