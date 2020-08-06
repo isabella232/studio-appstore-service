@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppStoreIntegrationService", "AppStoreIntegrationService\AppStoreIntegrationService.csproj", "{BA7A89A2-7C8B-4982-BB36-35E5C1466287}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppStoreIntegrationLoadTests", "AppStoreIntegrationLoadTests\AppStoreIntegrationLoadTests.csproj", "{3B3FF618-3BC0-47A0-A454-B7E375783082}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA7A89A2-7C8B-4982-BB36-35E5C1466287}.Release|x86.Build.0 = Release|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Debug|x86.Build.0 = Debug|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Release|x86.ActiveCfg = Release|Any CPU
+		{3B3FF618-3BC0-47A0-A454-B7E375783082}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C1F1AF2D-CF14-47B4-804C-34BEFD2B91A2}
+	EndGlobalSection
+EndGlobal
