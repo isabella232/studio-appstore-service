@@ -1,0 +1,78 @@
+trigger:
+- master
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  azureSubscription: 'AppStoreIntegrationAPI'
+  vmImageName: 'windows-latest'
+
+pool:
+ vmImage: $(vmImageName)
+
+stages:
+- stage: BuildAndTest
+  displayName: 'Build and Test AppStore Integration Service'
+  jobs:
+  - job: Do_build
+    steps:
+    - task: NuGetToolInstaller@1
+    - task: NuGetCommand@2
+      inputs:
+       restoreSolution: '$(solution)'
+  
+    - task: VSBuild@1
+      inputs:
+       solution: '$(solution)'
+       msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)" /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+       platform: '$(buildPlatform)'
+       configuration: '$(buildConfiguration)'
+  
+    - task: VSTest@2
+      inputs:
+       platform: '$(buildPlatform)'
+       configuration: '$(buildConfiguration)'
+  
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifact: 'studio-appstore-api'
+        
+- stage: Deploy_Beta
+  displayName: 'Deploy to Beta'
+  jobs:
+  - job: Do_Deploy
+    steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+         buildType: 'current'
+         artifactName: 'studio-appstore-api'
+         targetPath: '$(Pipeline.Workspace)'
+         
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'AppStoreIntegrationAPI'
+          appType: 'webApp'
+          WebAppName: 'studio-appstore-api-beta'
+          packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
+
+- stage: Deploy_Release
+  displayName: 'Deploy to Production'
+  condition: and(succeeded(), eq(variables['DEPLOY_RELEASE'], 'true'))
+  jobs:
+  - job: Do_Deploy
+    steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+         buildType: 'current'
+         artifactName: 'studio-appstore-api'
+         targetPath: '$(Pipeline.Workspace)'
+         
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'AppStoreIntegrationAPI'
+          appType: 'webApp'
+          WebAppName: 'studio-appstore-api'
+          packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
