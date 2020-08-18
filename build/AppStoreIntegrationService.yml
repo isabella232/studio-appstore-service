@@ -1,5 +1,7 @@
 trigger:
 - master
+pr:
+- master
 
 variables:
   solution: '**/*.sln'
