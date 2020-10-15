@@ -40,17 +40,17 @@ stages:
       inputs:
         artifact: 'studio-appstore-api'
 
-    stage: Deploy_Beta
+- stage: Deploy_Beta
   displayName: 'Deploy to Beta'
   jobs:
   - job: Do_Deploy
     steps:
       - task: DownloadPipelineArtifact@2
         inputs:
-         buildType: 'current'
-         artifactName: 'studio-appstore-api'
-         targetPath: '$(Pipeline.Workspace)'
-         
+        buildType: 'current'
+        artifactName: 'studio-appstore-api'
+        targetPath: '$(Pipeline.Workspace)'
+        
       - task: AzureRmWebAppDeployment@4
         inputs:
           ConnectionType: 'AzureRM'
