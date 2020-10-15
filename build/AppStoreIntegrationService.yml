@@ -39,8 +39,8 @@ stages:
     - task: PublishPipelineArtifact@1
       inputs:
         artifact: 'studio-appstore-api'
-        
-- stage: Deploy_Beta
+
+    stage: Deploy_Beta
   displayName: 'Deploy to Beta'
   jobs:
   - job: Do_Deploy
@@ -57,6 +57,25 @@ stages:
           azureSubscription: 'AppStoreIntegrationAPI'
           appType: 'webApp'
           WebAppName: 'studio-appstore-api-beta'
+          packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'    
+
+- stage: Deploy_Trial
+  displayName: 'Deploy to Trial'
+  jobs:
+  - job: Do_Deploy
+    steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+         buildType: 'current'
+         artifactName: 'studio-appstore-api'
+         targetPath: '$(Pipeline.Workspace)'
+         
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          ConnectionType: 'AzureRM'
+          azureSubscription: 'AppStoreIntegrationAPI'
+          appType: 'webApp'
+          WebAppName: 'studio-appstore-api-trial'
           packageForLinux: '$(System.ArtifactsDirectory)/**/*.zip'
 
 - stage: Deploy_Release
