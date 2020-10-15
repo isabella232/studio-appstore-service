@@ -47,9 +47,9 @@ stages:
     steps:
       - task: DownloadPipelineArtifact@2
         inputs:
-        buildType: 'current'
-        artifactName: 'studio-appstore-api'
-        targetPath: '$(Pipeline.Workspace)'
+          buildType: 'current'
+          artifactName: 'studio-appstore-api'
+          targetPath: '$(Pipeline.Workspace)'
         
       - task: AzureRmWebAppDeployment@4
         inputs:
