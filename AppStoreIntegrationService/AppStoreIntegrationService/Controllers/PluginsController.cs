@@ -6,6 +6,7 @@ using AppStoreIntegrationService.Model;
 using AppStoreIntegrationService.Repository;
 using Microsoft.AspNetCore.Http;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AppStoreIntegrationService.Controllers
 {
@@ -13,6 +14,7 @@ namespace AppStoreIntegrationService.Controllers
 	[Route("[controller]")]
 	[Route("")]
 	[Produces(MediaTypeNames.Application.Json)]
+	[Authorize]
 	public class PluginsController : Controller
 	{
 		public IPluginRepository PluginRepository { get; set; }
@@ -26,6 +28,7 @@ namespace AppStoreIntegrationService.Controllers
 		}
 
 		[ProducesResponseType(StatusCodes.Status200OK)]
+		[AllowAnonymous]
 		[ResponseCache(Duration = 540, Location = ResponseCacheLocation.Any,VaryByQueryKeys =new[] {"*"})]
 		public async Task<IActionResult> Get([FromQuery]PluginFilter filter)
 		{
