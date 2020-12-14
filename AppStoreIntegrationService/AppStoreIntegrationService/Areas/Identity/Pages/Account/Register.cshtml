@@ -5,7 +5,10 @@
 }
 
 <h1>@ViewData["Title"]</h1>
-
+<head>
+    <link rel="stylesheet" href="~/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/configtool.css" />
+</head>
 <div class="row">
     <div class="col-md-4">
         <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
@@ -27,7 +30,18 @@
                 <input asp-for="Input.ConfirmPassword" class="form-control" />
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Register</button>
+            <div class="form-group">
+                <label asp-for="Input.UserRole"></label>
+                <div class="form-check">
+                    <input checked type="radio" asp-for="Input.UserRole" value="StandardUser" />
+                    Standard
+                </div>
+                <div class="form-check">
+                    <input type="radio" asp-for="Input.UserRole" value="Administrator" />
+                    Administrator
+                </div>
+            </div>
+            <button type="submit" class="btn btn-secondary add-pluginBtn">Register</button>
         </form>
     </div>
 </div>

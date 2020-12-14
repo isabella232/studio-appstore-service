@@ -20,7 +20,7 @@ namespace AppStoreIntegrationService.Areas.Identity
                     options.UseSqlServer(
                         context.Configuration.GetConnectionString("AppStoreIntegrationServiceContextConnection")));
 
-                services.AddDefaultIdentity<IdentityUser>(
+                services.AddIdentity<IdentityUser, IdentityRole>(
                     options =>
                     {
                         options.Password.RequireDigit = false;
@@ -29,8 +29,8 @@ namespace AppStoreIntegrationService.Areas.Identity
                         options.Password.RequireNonAlphanumeric = false;
                         options.SignIn.RequireConfirmedAccount = false;
                     })
-                    .AddEntityFrameworkStores
-                    <AppStoreIntegrationServiceContext>();
+                    .AddEntityFrameworkStores<AppStoreIntegrationServiceContext>()
+                    .AddDefaultUI();
             });
         }
     }

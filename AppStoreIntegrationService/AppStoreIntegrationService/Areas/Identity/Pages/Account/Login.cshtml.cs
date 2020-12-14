@@ -2,38 +2,47 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace AppStoreIntegrationService.Areas.Identity.Pages.Account
 {
-    [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
-        private readonly IdentityUser _defaultAdminUser = new IdentityUser { UserName = "Admin", Email = "admin@sdl.com" };
-
 
         public LoginModel(SignInManager<IdentityUser> signInManager,
             ILogger<LoginModel> logger,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
-            _userManager = userManager;
             _signInManager = signInManager;
 
-            if (!_userManager.Users.Any())
+            if (!userManager.Users.Any())
             {
+                if (!roleManager.Roles.Any())
+                {
+                    roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = "Administrator",
+                        Id = "1"
+                    }).Wait();
+                    roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = "StandardUser",
+                        Id = "2"
+                    }).Wait();
+                }
+
                 var defaultAdminUser = new IdentityUser { UserName = "Admin", Email = "admin@sdl.com" };
-                _userManager.CreateAsync(defaultAdminUser, "administrator");
+                userManager.CreateAsync(defaultAdminUser, "administrator").Wait();
+
+                userManager.AddToRoleAsync(defaultAdminUser, "Administrator").Wait();
                 _signInManager.SignInAsync(defaultAdminUser, false);
             }
 
@@ -53,6 +62,7 @@ namespace AppStoreIntegrationService.Areas.Identity.Pages.Account
         public class InputModel
         {
             [Required]
+            [Display(Name = "Username")]
             public string UserName { get; set; }
 
             [Required]
