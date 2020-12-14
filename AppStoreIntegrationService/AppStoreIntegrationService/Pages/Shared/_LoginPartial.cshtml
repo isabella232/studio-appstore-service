@@ -1,28 +1,32 @@
 ﻿@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
+<style>
+    btn:focus, a:focus {
+        background-color: #2aa65b;
+        border: #2aa65b;
+    }
+</style>
+
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">
-            <a id="manage" class="nav-link text-dark" asp-area="Identity"
+            <a id="manage" class="nav-link text-white" asp-area="Identity"
                asp-page="/Account/Manage/Index" title="Manage">
                 Hello @UserManager.GetUserName(User)!
             </a>
         </li>
         <li class="nav-item">
             <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/configtool", new { area = "" })">
-                <button id="logout" type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+                <button id="logout" type="submit" class="nav-link btn btn-link text-white">Sign out</button>
             </form>
         </li>
     }
     else
     {
-        @if ((string)ViewContext.RouteData.Values["action"] != "~/Login")
-        {
-            <li class="nav-item">
-                <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
-            </li>
-        }
+        <li class="nav-item">
+            <a class="nav-link text-white" id="login" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+        </li>
     }
 </ul>
