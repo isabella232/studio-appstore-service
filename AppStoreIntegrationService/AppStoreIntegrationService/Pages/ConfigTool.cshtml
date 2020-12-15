@@ -10,12 +10,19 @@
     <link rel="stylesheet" href="~/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/configtool.css" />
     <link href="~/lib/font-awesome/css/all.css" rel="stylesheet" />
+    
+    <style>
+        .focusWhite:focus {
+            background-color: white;
+        }
+    </style>
+
 </head>
 
 <body>
     <div class="container" id="configToolPage">
         <div class="row card-actions" style="color:white">
-            <button type="button" onclick="javascript: ShowNewPluginModal()" class="btn btn-secondary add-pluginBtn"><i class="fas fa-puzzle-piece" style="margin-right:5px;color:white"></i>New App</button>
+            <button type="button" onclick="javascript: ShowNewPluginModal()" class="btn btn-secondary add-pluginBtn"><i class="fas fa-puzzle-piece" style="margin-right:5px;color:white;"></i>New App</button>
         </div>
         <div class="row">
             <input hidden asp-for="@Model.Id" id="selectedPluginId" />
@@ -31,7 +38,7 @@
                         <div class="card-body card-body-flex">
                             <div class="card-title">@plugin.Name</div>
                             <div class="card-actions">
-                                <a asp-page="Edit" asp-route-Id="@plugin.Id" id="edit-button"><i class="fas fa-pencil-alt"></i></a>
+                                <a class="focusWhite" asp-page="Edit" asp-route-Id="@plugin.Id" id="edit-button"><i class="fas fa-pencil-alt"></i></a>
                                 <a onclick="javascript: ShowConfirmationModal('@plugin.Id','@plugin.Name')" id="delete-button" style="cursor:pointer"><i class="far fa-trash-alt"></i></a>
                             </div>
                         </div>
