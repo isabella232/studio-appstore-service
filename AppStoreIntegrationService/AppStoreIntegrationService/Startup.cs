@@ -41,12 +41,7 @@ namespace AppStoreIntegrationService
             var env = serviceProvider.GetService<IWebHostEnvironment>();
 
             var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
-            var created = context.Database.EnsureCreated();
-
-            if(!created)
-            {
-                //context.Database.Migrate
-            }
+            context.Database.EnsureCreated();
 
             var configurationSettings = new ConfigurationSettings();
 
