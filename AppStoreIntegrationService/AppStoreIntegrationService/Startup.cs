@@ -14,6 +14,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using System.Net.Http;
 using AppStoreIntegrationService.Controllers;
+using AppStoreIntegrationService.Data;
 using Microsoft.AspNetCore.Identity;
 
 namespace AppStoreIntegrationService
@@ -38,6 +39,14 @@ namespace AppStoreIntegrationService
             //we'll need to read the json file with the plugins details from local path
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             var env = serviceProvider.GetService<IWebHostEnvironment>();
+
+            var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
+            var created = context.Database.EnsureCreated();
+
+            if(!created)
+            {
+                //context.Database.Migrate
+            }
 
             var configurationSettings = new ConfigurationSettings();
 
