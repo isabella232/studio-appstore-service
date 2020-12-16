@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationInsightsResourceId>/subscriptions/67c39e93-f1bc-4fbb-83d8-e623dee55cff/resourcegroups/AppService/providers/microsoft.insights/components/studio-appstore-api</ApplicationInsightsResourceId>
   </PropertyGroup>
 
