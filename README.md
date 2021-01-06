@@ -44,6 +44,8 @@ If you choose the add the settings in the system variables please make sure you 
 3. APPSTOREINTEGRATION_STORAGE_ACCOUNTKEY
 4. APPSTOREINTEGRATION_STORAGE_ACCOUNTNAME
 ```
+The **ConnectionStrings** section of the **appsettings** can also be set as an environment variable.
+
 ### ServerFilePath and NetworkFilePath Deploy mode
 In order to use one of these deploy options in the **appsettings.json**, or in the **Environment Variables**, the local folder path" and configuration file name should be added.
 
@@ -79,5 +81,13 @@ If you don't want to specify this property in the file the following properties 
 ## How to host a service on IIS
 A detailed explanation on how to host on IIS can be found [here](https://www.guru99.com/deploying-website-iis.html).
 
+When hosting on IIS, change the connection string from 
+```
+AppStoreIntegrationServiceContextConnection": "Server=(localdb)\\mssqllocaldb;Database=AppStoreIntegrationServiceAuthentication;Trusted_Connection=True;MultipleActiveResultSets=true"
+```
+to
+```
+"AppStoreIntegrationServiceContextConnection": "Server=localhost\\SQLEXPRESS;Database=AppStoreIntegrationAuthentication;Trusted_Connection=True;"
+```
 
 
