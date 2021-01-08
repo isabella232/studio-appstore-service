@@ -104,7 +104,11 @@ namespace AppStoreIntegrationService
                 options.AddPolicy("IsAdmin", policy => policy.RequireRole("Administrator"));
             });
 
-            services.AddRazorPages();
+            services.AddRazorPages()
+                .AddRazorPagesOptions(options =>
+                {
+                    options.Conventions.AddPageRoute("/Edit", "edit");
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
