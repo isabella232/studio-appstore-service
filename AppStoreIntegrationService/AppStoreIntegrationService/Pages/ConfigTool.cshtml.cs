@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace AppStoreIntegrationService
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class ConfigToolModel : PageModel
     {

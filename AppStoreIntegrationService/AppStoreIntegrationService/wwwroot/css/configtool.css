@@ -98,9 +98,6 @@
     padding:5px;
     color: #28b059 !important;
 }
-#header {
+header {
     background-color: #2aa65b;
-    height: 70px;
-    padding: 10px;
-    margin-bottom: 25px;
 }

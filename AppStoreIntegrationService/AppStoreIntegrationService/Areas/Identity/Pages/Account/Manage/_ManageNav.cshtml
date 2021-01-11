@@ -1,0 +1,24 @@
+﻿@inject SignInManager<IdentityUser> SignInManager
+
+<head>
+    <style>
+        .nav-pills .nav-link.active
+         {
+            color: #fff;
+            background-color: #28b059;
+        }
+        .option:focus {
+            background-color: white;
+        }
+
+    </style>
+</head>
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item"><a class="nav-link option @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
+    <li class="nav-item"><a class="nav-link option @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+    @if (User.IsInRole("Administrator"))
+    {
+        <li class="nav-item"><a class="nav-link option" asp-page="../Register">Add another user</a></li>
+    }
+
+</ul>

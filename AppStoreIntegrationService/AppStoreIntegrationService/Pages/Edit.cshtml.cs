@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using AppStoreIntegrationService.Controllers;
 using AppStoreIntegrationService.Model;
 using AppStoreIntegrationService.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AppStoreIntegrationService
 {
+    [Authorize]
     public class EditModel : PageModel
     {
         private readonly IPluginRepository _pluginRepository;
