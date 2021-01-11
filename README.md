@@ -78,6 +78,16 @@ If you don't want to specify this property in the file the following properties 
 - Open a comand prompt window and navigate to the folder where the server is located. 
 - Type the following command **AppStoreIntegrationService.exe**
 
+**If you get an HTTPS error message in the console when trying to start the service**
+
+- execute ```dotnet dev-certs https --trust```
+
+- if that command is not working either, check to see if you've got the .NET Core installed by executing ```dotnet --info``` which should show you details regarding the .NET installation on your PC. You should have .NET Core 3.1 or greater, installed.
+
+- if you don't, then go to https://dotnet.microsoft.com/download#windowsvs2015 and install it
+- restart the PC and execute ```dotnet dev-certs https --trust``` again
+- run the service again
+
 ## How to host a service on IIS
 A detailed explanation on how to host on IIS can be found [here](https://www.guru99.com/deploying-website-iis.html).
 
