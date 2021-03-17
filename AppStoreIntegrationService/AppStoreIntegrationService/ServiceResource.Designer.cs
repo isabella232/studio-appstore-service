@@ -124,6 +124,15 @@ namespace AppStoreIntegrationService {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to APPSTOREINTEGRATION_MAPPINGFILENAME.
+        /// </summary>
+        public static string MappingFileName {
+            get {
+                return ResourceManager.GetString("MappingFileName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to APPSTOREINTEGRATION_OOS_URI.
         /// </summary>
         public static string OosUri {

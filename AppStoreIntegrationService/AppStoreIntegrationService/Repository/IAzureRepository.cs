@@ -24,7 +24,6 @@ namespace AppStoreIntegrationService.Repository
 		public Task UploadToContainer(Stream pluginsStream);
 		public Task<List<PluginDetails>> GetPluginsListFromContainer();
 		public CloudStorageAccount GetCloudStorageAccount();
-		public DeployMode GetDeployMode();
 		/// <summary>
 		/// String which contains the plugins list updated. (Format of the file is json)
 		/// </summary>

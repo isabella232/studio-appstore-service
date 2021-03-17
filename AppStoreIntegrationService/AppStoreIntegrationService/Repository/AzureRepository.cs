@@ -21,13 +21,11 @@ namespace AppStoreIntegrationService.Repository
 		private CloudBlockBlob _backupCloudBlockBlob;
 		private readonly int _maxRetryCount = 3;
 		private readonly BlobRequestOptions _blobRequestOptions;
-		private readonly DeployMode _deployMode;
 		private readonly ConfigurationSettings _configurationSettings;
 		private readonly string _backupFileName;
 
-		public AzureRepository(DeployMode deployMode, ConfigurationSettings configurationSettings)
+		public AzureRepository(ConfigurationSettings configurationSettings)
 		{
-			_deployMode = deployMode;
 			_configurationSettings = configurationSettings;
 			_blobRequestOptions = new BlobRequestOptions
 			{
@@ -36,7 +34,7 @@ namespace AppStoreIntegrationService.Repository
 				DisableContentMD5Validation = true,
 				StoreBlobContentMD5 = false
 			};
-			if(deployMode == DeployMode.AzureBlob)
+			if(_configurationSettings.DeployMode == DeployMode.AzureBlob)
 			{
 				_cloudStorageAccount = GetCloudStorageAccount();
 				_backupFileName = $"{Path.GetFileNameWithoutExtension(_configurationSettings.ConfigFileName)}_backupFile.json";
@@ -59,7 +57,7 @@ namespace AppStoreIntegrationService.Repository
 				});
 			}
 
-			if (_deployMode == DeployMode.AzureBlob && !string.IsNullOrEmpty(_configurationSettings.ConfigFileName))
+			if (_configurationSettings.DeployMode == DeployMode.AzureBlob && !string.IsNullOrEmpty(_configurationSettings.ConfigFileName))
 			{
 				SetCloudBlockBlob(_configurationSettings.ConfigFileName,_backupFileName);
 
@@ -89,7 +87,6 @@ namespace AppStoreIntegrationService.Repository
 
 			_backupCloudBlockBlob= _cloudBlobContainer.GetBlockBlobReference(backupFileName);
 			_cloudBlockBlob.Properties.ContentType = Path.GetExtension(backupFileName);
-
 		}
 
 		public CloudStorageAccount GetCloudStorageAccount()
@@ -108,21 +105,12 @@ namespace AppStoreIntegrationService.Repository
 
 			var pluginsList = JsonConvert.DeserializeObject<PluginsResponse>(containterContent)?.Value;
 
-			if(pluginsList is null)
-			{
-				return new List<PluginDetails>();
-			}
-			return pluginsList;
+			return pluginsList ?? new List<PluginDetails>();
 		}
 
 		public async Task UploadToContainer (Stream pluginsStream)
 		{
 			await _cloudBlockBlob.UploadFromStreamAsync(pluginsStream,null,_blobRequestOptions,null);
-		}
-
-		public DeployMode GetDeployMode()
-		{
-			return _deployMode;
 		}
 
 		public async Task UpdatePluginsFileBlob(string fileContent)

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Net;
-using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -25,49 +24,12 @@ namespace AppStoreIntegrationService.Repository
 		private readonly Timer _pluginsCacheRenewer;
 		private readonly ConfigurationSettings _configurationSettings;
 		private readonly IAzureRepository _azureRepository;
-		private readonly string _localPluginsConfigFilePath;
-		private readonly string _backupConfigFile;
 		private List<CategoryDetails> _availableCategories;
 
-		public PluginRepository(IAzureRepository azureRepository, IWebHostEnvironment webHostEnvironment, ConfigurationSettings configurationSettings)
+		public PluginRepository(IAzureRepository azureRepository, ConfigurationSettings configurationSettings)
 		{
 			_azureRepository = azureRepository;
 			_configurationSettings = configurationSettings;
-			var configFolderPath = _configurationSettings.LocalFolderPath;
-			var fileName = _configurationSettings.ConfigFileName;
-			var backupFileName = $"{Path.GetFileNameWithoutExtension(fileName)}_backup.json";
-
-			if (!string.IsNullOrEmpty(configFolderPath) && !string.IsNullOrEmpty(fileName))
-			{
-				var folderPath = string.Empty;
-				var deployMode = _azureRepository.GetDeployMode();
-				if (deployMode == Enums.DeployMode.ServerFilePath)
-				{
-					folderPath = $"{webHostEnvironment.ContentRootPath}{configFolderPath}";
-				}
-				if (deployMode == Enums.DeployMode.NetworkFilePath)
-				{
-					folderPath = configFolderPath;
-				}
-				if (!string.IsNullOrEmpty(folderPath))
-				{
-					Directory.CreateDirectory(folderPath);
-					_localPluginsConfigFilePath = Path.Combine(folderPath, fileName);
-					_backupConfigFile = Path.Combine(folderPath, backupFileName);
-
-					if (!string.IsNullOrEmpty(_localPluginsConfigFilePath))
-					{
-						if (!File.Exists(_localPluginsConfigFilePath))
-						{
-							File.Create(_localPluginsConfigFilePath).Dispose();
-						}
-						if (!File.Exists(_backupConfigFile))
-						{
-							File.Create(_backupConfigFile).Dispose();
-						}
-					}
-				}
-			}
 
 			_pluginsCacheRenewer = new Timer(OnCacheExpiredCallback,
 				this,
@@ -79,9 +41,7 @@ namespace AppStoreIntegrationService.Repository
 
 		public async Task<List<PluginDetails>> GetAll(string sortOrder)
 		{
-			List<PluginDetails> pluginsList = null;
-
-			pluginsList = await GetPlugins();
+			var pluginsList =await GetPlugins();
 
 			if (pluginsList == null || pluginsList?.Count == 0)
 			{
@@ -99,26 +59,24 @@ namespace AppStoreIntegrationService.Repository
 
 		private async Task<List<PluginDetails>> GetPlugins()
 		{
-			if (_azureRepository.GetDeployMode() != Enums.DeployMode.AzureBlob) //json file is saved locally on server
+			if (_configurationSettings.DeployMode != Enums.DeployMode.AzureBlob) //json file is saved locally on server
 			{
 				return await GetPluginsListFromLocalFile(); // read plugins from json file
 			}
-			else
-			{
-				return await _azureRepository.GetPluginsListFromContainer(); // json file is on Azure Blob
-			}
+
+			return await _azureRepository.GetPluginsListFromContainer(); // json file is on Azure Blob
 		}
 
 		private async Task<List<PluginDetails>> GetPluginsListFromLocalFile()
 		{
-			var pluginsDetails = await File.ReadAllTextAsync(_localPluginsConfigFilePath);
+			var pluginsDetails = await File.ReadAllTextAsync(_configurationSettings.LocalPluginsConfigFilePath);
 
 			return JsonConvert.DeserializeObject<PluginsResponse>(pluginsDetails)?.Value;
 		}
 
 		private async Task RefreshCacheList()
 		{
-			if (!string.IsNullOrEmpty(_configurationSettings.OosUri) && _azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (!string.IsNullOrEmpty(_configurationSettings.OosUri) && _configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
 				var handler = new HttpClientHandler
 				{
@@ -411,14 +369,14 @@ namespace AppStoreIntegrationService.Repository
 			};
 
 			var updatedPluginsText = JsonConvert.SerializeObject(pluginResponse);
-			if (_azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (_configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
 				await _azureRepository.BackupFile(updatedPluginsText);
 			}
 			else
 			{
 				//json file is saved locally on server or in File Newtork location
-				await File.WriteAllTextAsync(_backupConfigFile, updatedPluginsText);
+				await File.WriteAllTextAsync(_configurationSettings.ConfigFileBackUpPath, updatedPluginsText);
 			}
 		}
 
@@ -430,14 +388,14 @@ namespace AppStoreIntegrationService.Repository
 			};
 			var updatedPluginsText = JsonConvert.SerializeObject(pluginResponse);
 			
-			if (_azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (_configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
 				await _azureRepository.UpdatePluginsFileBlob(updatedPluginsText);
 			}
 			else
 			{
 				//json file is saved locally on server or in File Newtork location
-				await File.WriteAllTextAsync(_localPluginsConfigFilePath, updatedPluginsText);
+				await File.WriteAllTextAsync(_configurationSettings.LocalPluginsConfigFilePath, updatedPluginsText);
 			}
 		}
 

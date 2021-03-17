@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 
 namespace AppStoreIntegrationService.Model
 {
@@ -30,11 +33,67 @@ namespace AppStoreIntegrationService.Model
 		/// Oos uri from where the server will refresh the json file from Azure if the Configuration is set to "AzureBlob")
 		/// </summary>
 		public string OosUri { get; set; }
+		/// <summary>
+		/// NAme of the json file from where service reads the plugins name mapping
+		/// </summary>
+		public string MappingFileName { get; set; }
 
 		/// <summary>
 		/// Azure Telemetry Instrumentation Key
 		/// </summary>
 		public string InstrumentationKey { get; set; }
+
+		public Enums.DeployMode DeployMode { get; set; }
+		public string NameMappingsFilePath { get; set; }
+		public string ConfigFolderPath { get; set; }
+		public string LocalPluginsConfigFilePath { get; set; }
+		public string ConfigFileBackUpPath { get; set; }
+
+		public ConfigurationSettings(Enums.DeployMode deployMode)
+		{
+			DeployMode = deployMode;
+		}
+
+		public async Task SetFilePathsProperties(IWebHostEnvironment environment)
+		{
+			if (DeployMode == Enums.DeployMode.ServerFilePath)
+			{
+				ConfigFolderPath = $"{environment.ContentRootPath}{LocalFolderPath}";
+			}
+			if (DeployMode == Enums.DeployMode.NetworkFilePath)
+			{
+				ConfigFolderPath = LocalFolderPath;
+			}
+			//TODO: see if we need to do something for Azure deploy
+
+			NameMappingsFilePath = Path.Combine(ConfigFolderPath, MappingFileName);
+			LocalPluginsConfigFilePath = Path.Combine(ConfigFolderPath, ConfigFileName);
+
+			ConfigFileBackUpPath = Path.Combine(ConfigFolderPath, $"{Path.GetFileNameWithoutExtension(ConfigFileName)}_backup.json");
+			await CreateConfigurationFiles();
+		}
+
+		private async Task CreateConfigurationFiles()
+		{
+			if (!string.IsNullOrEmpty(ConfigFolderPath))
+			{
+				Directory.CreateDirectory(ConfigFolderPath);
+				if (!File.Exists(LocalPluginsConfigFilePath))
+				{
+					await File.Create(LocalPluginsConfigFilePath).DisposeAsync();
+				}
+
+				if (!File.Exists(NameMappingsFilePath))
+				{
+					await File.Create(NameMappingsFilePath).DisposeAsync();
+				}
+
+				if (!File.Exists(ConfigFileBackUpPath))
+				{
+					await File.Create(ConfigFileBackUpPath).DisposeAsync();
+				}
+			}
+		}
 
 		public void LoadVariables()
 		{
@@ -45,6 +104,7 @@ namespace AppStoreIntegrationService.Model
 			ConfigFileName = GetVariable(ServiceResource.ConfigFileName);
 			OosUri = GetVariable(ServiceResource.OosUri);
 			InstrumentationKey = GetVariable(ServiceResource.TelemetryInstrumentationKey);
+			MappingFileName = GetVariable(ServiceResource.MappingFileName);
 		}
 
 		private string GetVariable(string key)
