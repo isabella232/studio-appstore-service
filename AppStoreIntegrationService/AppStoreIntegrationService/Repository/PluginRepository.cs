@@ -247,12 +247,21 @@ namespace AppStoreIntegrationService.Repository
 		private List<PluginDetails> FilterByVersion(List<PluginDetails> pluginsList, string studioVersion)
 		{
 			var plugins = new List<PluginDetails>();
+
+			var expression = new Regex("\\d+", RegexOptions.IgnoreCase);
+			var versionNumber = expression.Match(studioVersion);
+			var oldTradosName = $"SDL Trados Studio {versionNumber.Value}";
+			var rebrandedStudioName = $"Trados Studio {versionNumber.Value}";
+
 			foreach (var plugin in pluginsList)
 			{
 				foreach (var pluginVersion in plugin.Versions)
 				{
 					//there are some apps in the oos which are working for all studio version. So the field is "SDL Trados Studio" without any studio specific version
-					var version = pluginVersion.SupportedProducts?.FirstOrDefault(s => s.ProductName.Equals(studioVersion) || s.ProductName.Equals("SDL Trados Studio"));
+					var version = pluginVersion.SupportedProducts?.FirstOrDefault(s =>
+						s.ProductName.Equals(oldTradosName) || s.ProductName.Equals(rebrandedStudioName)
+						                                    || s.ProductName.Equals("SDL Trados Studio") ||
+						                                    s.ProductName.Equals("Trados Studio"));
 					if (version != null)
 					{
 						plugins.Add(plugin);
@@ -260,6 +269,7 @@ namespace AppStoreIntegrationService.Repository
 					}
 				}
 			}
+
 			return plugins;
 		}
 

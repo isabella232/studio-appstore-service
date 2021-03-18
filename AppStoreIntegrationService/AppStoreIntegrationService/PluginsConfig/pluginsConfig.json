@@ -1,1 +1,90 @@
-{"Value":[{"Id":1,"Name":"new app","Description":"this is the description","Icon":{"MediaURL":"https://localhost:5005/images/plugin.ico"},"ReleaseDate":null,"DownloadCount":0,"CommentCount":0,"SupportText":null,"PaidFor":false,"Pricing":null,"RatingSummary":null,"Developer":null,"Media":null,"Versions":[{"CreatedDate":null,"DownloadCount":0,"Id":"2de92ab1-fa53-40b6-8671-1e988be23b45","ReleasedDate":null,"TechnicalRequirements":null,"VersionNumber":"1.2","SupportedProducts":[{"Id":"37","ProductName":"SDL Trados Studio 2021","ParentProductID":14}],"AppHasStudioPluginInstaller":true,"MinimumRequiredVersionOfStudio":"16.0","SDLHosted":false,"DownloadUrl":"sssasasa","IsPrivatePlugin":true}],"Categories":[],"DownloadUrl":"sssasasa"}]}
+{
+  "Value": [
+    {
+      "Id": 1,
+      "Name": "SDL Trados app",
+      "Description": "this is the description",
+      "Icon": {
+        "MediaURL": "https://localhost:5005/images/plugin.ico"
+      },
+      "ReleaseDate": null,
+      "DownloadCount": 0,
+      "CommentCount": 0,
+      "SupportText": null,
+      "PaidFor": false,
+      "Pricing": null,
+      "RatingSummary": null,
+      "Developer": null,
+      "Media": null,
+      "Versions": [
+        {
+          "CreatedDate": null,
+          "DownloadCount": 0,
+          "Id": "2de92ab1-fa53-40b6-8671-1e988be23b45",
+          "ReleasedDate": null,
+          "TechnicalRequirements": null,
+          "VersionNumber": "1.2",
+          "SupportedProducts": [
+            {
+              "Id": "37",
+              "ProductName": "SDL Trados Studio 2021",
+              "ParentProductID": 14
+            }
+          ],
+          "AppHasStudioPluginInstaller": true,
+          "MinimumRequiredVersionOfStudio": "16.0",
+          "SDLHosted": false,
+          "DownloadUrl": "sssasasa",
+          "IsPrivatePlugin": true
+        }
+      ],
+      "Categories": [
+
+      ],
+      "DownloadUrl": "sssasasa"
+    },
+    {
+      "Id": 2,
+      "Name": "Trados App",
+      "Description": "this is the description",
+      "Icon": {
+        "MediaURL": "https://localhost:5005/images/plugin.ico"
+      },
+      "ReleaseDate": null,
+      "DownloadCount": 0,
+      "CommentCount": 0,
+      "SupportText": null,
+      "PaidFor": false,
+      "Pricing": null,
+      "RatingSummary": null,
+      "Developer": null,
+      "Media": null,
+      "Versions": [
+        {
+          "CreatedDate": null,
+          "DownloadCount": 0,
+          "Id": "2de92ab1-fa53-40b6-8671-1e988be23b45",
+          "ReleasedDate": null,
+          "TechnicalRequirements": null,
+          "VersionNumber": "1.2",
+          "SupportedProducts": [
+            {
+              "Id": "37",
+              "ProductName": "Trados Studio 2021",
+              "ParentProductID": 14
+            }
+          ],
+          "AppHasStudioPluginInstaller": true,
+          "MinimumRequiredVersionOfStudio": "16.0",
+          "SDLHosted": false,
+          "DownloadUrl": "sssasasa",
+          "IsPrivatePlugin": true
+        }
+      ],
+      "Categories": [
+
+      ],
+      "DownloadUrl": "sssasasa"
+    }
+  ]
+}
