@@ -30,7 +30,8 @@ namespace AppStoreIntegrationService.Repository
 			}
 			else
 			{
-				//TODO: Implement for azure
+				var azureMappings = await _azureRepository.GetNameMappingsFromContainer();
+				_nameMappings.AddRange(azureMappings);
 			}
 
 			return pluginsNames.Select(pluginName => _nameMappings.FirstOrDefault(n => n.OldName.Equals(pluginName))).Where(mapping => mapping != null);

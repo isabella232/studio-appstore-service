@@ -15,112 +15,144 @@ namespace AppStoreIntegrationService.Repository
 {
 	public class AzureRepository : IAzureRepository
 	{
-		private readonly CloudStorageAccount _cloudStorageAccount;
 		private CloudBlobContainer _cloudBlobContainer;
-		private CloudBlockBlob _cloudBlockBlob;
-		private CloudBlockBlob _backupCloudBlockBlob;
-		private readonly int _maxRetryCount = 3;
+		private CloudBlockBlob _pluginsListBlockBlob;
+		private CloudBlockBlob _pluginsBackupBlockBlob;
+		private CloudBlockBlob _nameMappingsBlockBlob;
 		private readonly BlobRequestOptions _blobRequestOptions;
 		private readonly ConfigurationSettings _configurationSettings;
-		private readonly string _backupFileName;
 
 		public AzureRepository(ConfigurationSettings configurationSettings)
 		{
 			_configurationSettings = configurationSettings;
+			if (_configurationSettings.DeployMode != DeployMode.AzureBlob ||
+			    string.IsNullOrEmpty(_configurationSettings.ConfigFileName)) return;
+
 			_blobRequestOptions = new BlobRequestOptions
 			{
 				MaximumExecutionTime = TimeSpan.FromSeconds(120),
-				RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), _maxRetryCount),
+				RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(3), 3),
 				DisableContentMD5Validation = true,
 				StoreBlobContentMD5 = false
 			};
-			if(_configurationSettings.DeployMode == DeployMode.AzureBlob)
+			
+			var cloudStorageAccount = GetCloudStorageAccount();
+			if (cloudStorageAccount != null)
 			{
-				_cloudStorageAccount = GetCloudStorageAccount();
-				_backupFileName = $"{Path.GetFileNameWithoutExtension(_configurationSettings.ConfigFileName)}_backupFile.json";
-
-				CreateContainer();
-			}			
-		}
-
-		public void CreateContainer()
-		{
-			var blobClient = _cloudStorageAccount.CreateCloudBlobClient();
-			_cloudBlobContainer = blobClient.GetContainerReference(_configurationSettings.BlobName.Trim().ToLower());
-
-			if (_cloudBlobContainer.CreateIfNotExists())
-			{
-				_cloudBlobContainer.SetPermissionsAsync(new
-				BlobContainerPermissions
-				{
-					PublicAccess = BlobContainerPublicAccessType.Blob
-				});
-			}
-
-			if (_configurationSettings.DeployMode == DeployMode.AzureBlob && !string.IsNullOrEmpty(_configurationSettings.ConfigFileName))
-			{
-				SetCloudBlockBlob(_configurationSettings.ConfigFileName,_backupFileName);
-
-				InitializeBlockBlobs();				
+				CreateContainer(cloudStorageAccount);
 			}
 		}
 
-		private void InitializeBlockBlobs()
+		public async Task<List<PluginDetails>> GetPluginsListFromContainer()
 		{
-			var fileBlobExists = _cloudBlockBlob.Exists();
-			if (!fileBlobExists)
-			{
-				_cloudBlockBlob.UploadText(string.Empty);
-			}
+			var containterContent = await _pluginsListBlockBlob.DownloadTextAsync(Encoding.UTF8, null, _blobRequestOptions,null);
+			var stream = new MemoryStream();
 
-			var backupBlobExists = _backupCloudBlockBlob.Exists();
-			if (!backupBlobExists)
-			{
-				_backupCloudBlockBlob.UploadText(string.Empty);
-			}
+			await _pluginsListBlockBlob.DownloadToStreamAsync(stream,null,_blobRequestOptions,null);
+			var pluginsList = JsonConvert.DeserializeObject<PluginsResponse>(containterContent)?.Value;
+
+			await stream.DisposeAsync();
+
+			return pluginsList ?? new List<PluginDetails>();
 		}
 
-		public void SetCloudBlockBlob(string fileName,string backupFileName)
+		public async Task<List<NameMapping>> GetNameMappingsFromContainer()
 		{
-			_cloudBlockBlob = _cloudBlobContainer.GetBlockBlobReference(fileName);
-			_cloudBlockBlob.Properties.ContentType = Path.GetExtension(fileName);
+			var containterContent = await _nameMappingsBlockBlob.DownloadTextAsync(Encoding.UTF8, null, _blobRequestOptions, null);
+			var stream = new MemoryStream();
 
-			_backupCloudBlockBlob= _cloudBlobContainer.GetBlockBlobReference(backupFileName);
-			_cloudBlockBlob.Properties.ContentType = Path.GetExtension(backupFileName);
+			await _nameMappingsBlockBlob.DownloadToStreamAsync(stream, null, _blobRequestOptions, null);
+			var nameMappings = JsonConvert.DeserializeObject<List<NameMapping>>(containterContent);
+			await stream.DisposeAsync();
+			return nameMappings ?? new List<NameMapping>();
 		}
 
-		public CloudStorageAccount GetCloudStorageAccount()
+		public async Task UploadToContainer (Stream pluginsStream)
 		{
+			await _pluginsListBlockBlob.UploadFromStreamAsync(pluginsStream,null,_blobRequestOptions,null);
+		}
+
+		public async Task UpdatePluginsFileBlob(string fileContent)
+		{
+			await _pluginsListBlockBlob.UploadTextAsync(fileContent);
+		}
+
+		public async Task BackupFile(string fileContent)
+		{
+			await _pluginsBackupBlockBlob.UploadTextAsync(fileContent);
+		}
+
+		private CloudStorageAccount GetCloudStorageAccount()
+		{
+			if (string.IsNullOrEmpty(_configurationSettings?.StorageAccountName) ||
+			    string.IsNullOrEmpty(_configurationSettings?.StorageAccountKey)) return null;
+
 			var storageCredentils = new StorageCredentials(_configurationSettings?.StorageAccountName, _configurationSettings?.StorageAccountKey);
 			var storageAccount = new CloudStorageAccount(storageCredentils, true);
 			return storageAccount;
 		}
 
-		public async Task<List<PluginDetails>> GetPluginsListFromContainer()
+		/// <summary>
+		/// Creates a azure container if does not exists already
+		/// </summary>
+		private void CreateContainer(CloudStorageAccount cloudStorageAccount)
 		{
-			var containterContent = await _cloudBlockBlob.DownloadTextAsync(Encoding.UTF8, null, _blobRequestOptions,null);
-			var stream = new MemoryStream();
+			var blobClient = cloudStorageAccount.CreateCloudBlobClient();
+			_cloudBlobContainer = blobClient.GetContainerReference(_configurationSettings.BlobName.Trim().ToLower());
 
-			await _cloudBlockBlob.DownloadToStreamAsync(stream,null,_blobRequestOptions,null);
+			if (_cloudBlobContainer.CreateIfNotExists())
+			{
+				_cloudBlobContainer.SetPermissionsAsync(new
+					BlobContainerPermissions
+					{
+						PublicAccess = BlobContainerPublicAccessType.Blob
+					});
+			}
 
-			var pluginsList = JsonConvert.DeserializeObject<PluginsResponse>(containterContent)?.Value;
-
-			return pluginsList ?? new List<PluginDetails>();
+			SetCloudBlockBlobs();
+			InitializeBlockBlobs();
 		}
 
-		public async Task UploadToContainer (Stream pluginsStream)
+		/// <summary>
+		/// Set cloud blob for config file and backupfile
+		/// If the blob does not exist creates a new one
+		/// </summary>
+		private void InitializeBlockBlobs()
 		{
-			await _cloudBlockBlob.UploadFromStreamAsync(pluginsStream,null,_blobRequestOptions,null);
+			CreateEmptyFile(_pluginsListBlockBlob);
+			CreateEmptyFile(_pluginsBackupBlockBlob);
+			CreateEmptyFile(_nameMappingsBlockBlob);
 		}
 
-		public async Task UpdatePluginsFileBlob(string fileContent)
+		private void CreateEmptyFile(CloudBlockBlob cloudBlockBlob)
 		{
-			await _cloudBlockBlob.UploadTextAsync(fileContent);
+			if (cloudBlockBlob is null) return;
+			var fileBlobExists = cloudBlockBlob.Exists();
+			if (!fileBlobExists)
+			{
+				cloudBlockBlob.UploadText(string.Empty);
+			}
 		}
 
-		public async Task BackupFile(string fileContent)
+		/// <summary>
+		/// Get reference to Cloud blobs/ files (json file with plugins, backup of the plugins file, name mapping file
+		/// </summary>
+		private void SetCloudBlockBlobs()
 		{
-			await _backupCloudBlockBlob.UploadTextAsync(fileContent);
+			_pluginsListBlockBlob= GetBlockBlobReference(_configurationSettings.ConfigFileName);
+
+			var backupFileName = $"{Path.GetFileNameWithoutExtension(_configurationSettings.ConfigFileName)}_backupFile.json";
+			_pluginsBackupBlockBlob = GetBlockBlobReference(backupFileName);
+
+			_nameMappingsBlockBlob =GetBlockBlobReference(_configurationSettings.MappingFileName);
+		}
+
+		private CloudBlockBlob GetBlockBlobReference(string fileName)
+		{
+			if (string.IsNullOrEmpty(fileName)) return null;
+			var cloudBlob = _cloudBlobContainer.GetBlockBlobReference(fileName);
+			cloudBlob.Properties.ContentType = Path.GetExtension(fileName);
+			return cloudBlob;
 		}
 	}
 }

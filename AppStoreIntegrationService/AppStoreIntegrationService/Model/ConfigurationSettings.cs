@@ -56,15 +56,17 @@ namespace AppStoreIntegrationService.Model
 
 		public async Task SetFilePathsProperties(IWebHostEnvironment environment)
 		{
-			if (DeployMode == Enums.DeployMode.ServerFilePath)
+			switch (DeployMode)
 			{
-				ConfigFolderPath = $"{environment.ContentRootPath}{LocalFolderPath}";
+				case Enums.DeployMode.AzureBlob:
+					return;
+				case Enums.DeployMode.ServerFilePath:
+					ConfigFolderPath = $"{environment.ContentRootPath}{LocalFolderPath}";
+					break;
+				case Enums.DeployMode.NetworkFilePath:
+					ConfigFolderPath = LocalFolderPath;
+					break;
 			}
-			if (DeployMode == Enums.DeployMode.NetworkFilePath)
-			{
-				ConfigFolderPath = LocalFolderPath;
-			}
-			//TODO: see if we need to do something for Azure deploy
 
 			NameMappingsFilePath = Path.Combine(ConfigFolderPath, MappingFileName);
 			LocalPluginsConfigFilePath = Path.Combine(ConfigFolderPath, ConfigFileName);

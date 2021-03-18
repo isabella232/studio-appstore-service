@@ -108,14 +108,14 @@ namespace AppStoreIntegrationService
 	        {
 		        Configuration.Bind("ConfigurationSettings", configurationSettings);
 	        }
-	        else
+			else
 	        {
 		        //Read from environment variables
 		        configurationSettings.LoadVariables();
 	        }
-            await configurationSettings.SetFilePathsProperties(env);
+	        await configurationSettings.SetFilePathsProperties(env);
 
-	        return configurationSettings;
+			return configurationSettings;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
