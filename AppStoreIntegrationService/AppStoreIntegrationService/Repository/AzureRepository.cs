@@ -20,9 +20,9 @@ namespace AppStoreIntegrationService.Repository
 		private CloudBlockBlob _pluginsBackupBlockBlob;
 		private CloudBlockBlob _nameMappingsBlockBlob;
 		private readonly BlobRequestOptions _blobRequestOptions;
-		private readonly ConfigurationSettings _configurationSettings;
+		private readonly IConfigurationSettings _configurationSettings;
 
-		public AzureRepository(ConfigurationSettings configurationSettings)
+		public AzureRepository(IConfigurationSettings configurationSettings)
 		{
 			_configurationSettings = configurationSettings;
 			if (_configurationSettings.DeployMode != DeployMode.AzureBlob ||

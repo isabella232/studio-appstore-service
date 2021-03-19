@@ -8,11 +8,13 @@ using Microsoft.Extensions.Hosting;
 using System.IO.Compression;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Net;
 using static AppStoreIntegrationService.Enums;
 using AppStoreIntegrationService.Model;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AppStoreIntegrationService.Controllers;
 using AppStoreIntegrationService.Data;
@@ -44,9 +46,10 @@ namespace AppStoreIntegrationService
 	        var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
 	        context.Database.EnsureCreated();
 
-	        var configurationSettings = GetConfigurationSettings(env, deployMode).Result;
+			var configurationSettings = GetConfigurationSettings(env, deployMode).Result;
+			ConfigureHttpClient(services);
 
-	        services.AddMvc();
+			services.AddMvc();
 
 	        services.AddHttpContextAccessor();
 	        services.Configure<GzipCompressionProviderOptions>(options =>
@@ -74,20 +77,9 @@ namespace AppStoreIntegrationService
 
 	        services.AddHttpContextAccessor();
 
-	        //All the methods related to Azure blob (creates or read for release/demo deploy mode the files with plugins details which we'll be displayed in Studio
-	        var azureRepository = new AzureRepository(configurationSettings);
-	        var pluginRepository = new PluginRepository(azureRepository, configurationSettings);
-	        var namesRepository = new NamesRepository(azureRepository, configurationSettings);
-	        services.AddSingleton<IAzureRepository>(azureRepository);
-	        services.AddSingleton<IPluginRepository>(pluginRepository);
-	        services.AddSingleton<INamesRepository>(namesRepository);
-	        services.AddHttpClient("HttpClientWithSSLUntrusted").ConfigurePrimaryHttpMessageHandler(() =>
-		        new HttpClientHandler
-		        {
-			        ClientCertificateOptions = ClientCertificateOption.Manual,
-			        ServerCertificateCustomValidationCallback =
-				        (httpRequestMessage, cert, cetChain, policyErrors) => true
-		        });
+	        services.AddSingleton<IAzureRepository,AzureRepository>();
+	        services.AddSingleton<INamesRepository,NamesRepository>();
+	        services.AddSingleton<IConfigurationSettings>(configurationSettings);
 
 	        services.AddAuthorization(options =>
 	        {
@@ -96,6 +88,31 @@ namespace AppStoreIntegrationService
 
 	        services.AddRazorPages()
 		        .AddRazorPagesOptions(options => { options.Conventions.AddPageRoute("/Edit", "edit"); });
+        }
+
+        private static void ConfigureHttpClient(IServiceCollection services)
+        {
+	        services.AddHttpClient("HttpClientWithSSLUntrusted").ConfigurePrimaryHttpMessageHandler(() =>
+		        new HttpClientHandler
+		        {
+			        ClientCertificateOptions = ClientCertificateOption.Manual,
+			        ServerCertificateCustomValidationCallback =
+				        (httpRequestMessage, cert, cetChain, policyErrors) => true
+		        });
+
+	        services.AddHttpClient<IPluginRepository, PluginRepository>(l =>
+	        {
+		        l.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		        l.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+		        l.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+		        l.DefaultRequestHeaders.Connection.Add("Keep-Alive");
+		        l.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+		        l.DefaultRequestHeaders.TransferEncodingChunked = false;
+		        l.Timeout = TimeSpan.FromMinutes(5);
+	        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+	        {
+		        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+	        });
         }
 
         private async Task<ConfigurationSettings> GetConfigurationSettings(IWebHostEnvironment env, DeployMode deployMode)

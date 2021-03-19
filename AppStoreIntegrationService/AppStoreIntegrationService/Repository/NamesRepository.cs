@@ -10,10 +10,10 @@ namespace AppStoreIntegrationService.Repository
 	public class NamesRepository:INamesRepository
 	{
 		private readonly IAzureRepository _azureRepository;
-		private readonly ConfigurationSettings _configurationSettings;
+		private readonly IConfigurationSettings _configurationSettings;
 		private readonly List<NameMapping> _nameMappings;
 
-		public NamesRepository(IAzureRepository azureRepository,ConfigurationSettings configurationSettings)
+		public NamesRepository(IAzureRepository azureRepository,IConfigurationSettings configurationSettings)
 		{
 			_azureRepository = azureRepository;
 			_configurationSettings = configurationSettings;

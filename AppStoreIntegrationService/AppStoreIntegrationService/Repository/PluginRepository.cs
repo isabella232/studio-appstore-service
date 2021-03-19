@@ -2,12 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Net;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -22,15 +20,16 @@ namespace AppStoreIntegrationService.Repository
 		private const int CategoryId_FileFiltersConverters = 2;
 
 		private readonly Timer _pluginsCacheRenewer;
-		private readonly ConfigurationSettings _configurationSettings;
+		private readonly IConfigurationSettings _configurationSettings;
 		private readonly IAzureRepository _azureRepository;
 		private List<CategoryDetails> _availableCategories;
+		private readonly HttpClient _httpClient;
 
-		public PluginRepository(IAzureRepository azureRepository, ConfigurationSettings configurationSettings)
+		public PluginRepository(IAzureRepository azureRepository, IConfigurationSettings configurationSettings,HttpClient httpClient)
 		{
 			_azureRepository = azureRepository;
 			_configurationSettings = configurationSettings;
-
+			_httpClient = httpClient;
 			_pluginsCacheRenewer = new Timer(OnCacheExpiredCallback,
 				this,
 				TimeSpan.FromMinutes(RefreshDuration),
@@ -78,31 +77,19 @@ namespace AppStoreIntegrationService.Repository
 		{
 			if (!string.IsNullOrEmpty(_configurationSettings.OosUri) && _configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
-				var handler = new HttpClientHandler
-				{
-					AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-				};
-				var httpClient = new HttpClient(handler)
-				{
-					Timeout = TimeSpan.FromMinutes(5)
-				};
-				httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-				httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-				httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-				httpClient.DefaultRequestHeaders.Connection.Add("Keep-Alive");
-				httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-				httpClient.DefaultRequestHeaders.TransferEncodingChunked = false;
-
 				var httpRequestMessage = new HttpRequestMessage
 				{
 					Method = HttpMethod.Get,
 					RequestUri = new Uri($"{_configurationSettings.OosUri}/Apps?$expand=Categories,Versions($expand=SupportedProducts)")
 				};
-				var pluginsResponse = await httpClient.SendAsync(httpRequestMessage);
+				var pluginsResponse = await _httpClient.SendAsync(httpRequestMessage);
 				if (pluginsResponse.IsSuccessStatusCode)
 				{
-					var contentStream = await pluginsResponse.Content?.ReadAsStreamAsync();
-					await _azureRepository.UploadToContainer(contentStream);
+					if (pluginsResponse.Content != null)
+					{
+						var contentStream = await pluginsResponse.Content?.ReadAsStreamAsync();
+						await _azureRepository.UploadToContainer(contentStream);
+					}
 				}
 			}
 		}
