@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AppStoreIntegrationService.Model;
 using Microsoft.Azure.Storage;
@@ -98,7 +100,8 @@ namespace AppStoreIntegrationService.Repository
 		private void CreateContainer(CloudStorageAccount cloudStorageAccount)
 		{
 			var blobClient = cloudStorageAccount.CreateCloudBlobClient();
-			_cloudBlobContainer = blobClient.GetContainerReference(_configurationSettings.BlobName.Trim().ToLower());
+			var blobName =NormalizeBlobName();
+			_cloudBlobContainer = blobClient.GetContainerReference(blobName);
 
 			if (_cloudBlobContainer.CreateIfNotExists())
 			{
@@ -111,6 +114,26 @@ namespace AppStoreIntegrationService.Repository
 
 			SetCloudBlockBlobs();
 			InitializeBlockBlobs();
+		}
+
+		/// <summary>
+		/// Azure requirements for blob name: only letters and digits, lowercase, Container names must be > 3 characters
+		/// </summary>
+		private string NormalizeBlobName()
+		{
+			if (string.IsNullOrEmpty(_configurationSettings.BlobName))
+			{
+				_configurationSettings.BlobName = "defaultblobname";
+			}
+			var regex = new Regex("[A-Za-z0-9]+");
+			var matchCollection = regex.Matches(_configurationSettings.BlobName);
+			var normalizedName = string.Concat(matchCollection.Select(m => m.Value));
+			if (normalizedName.Length < 3)
+			{
+				normalizedName = $"{normalizedName}appstore";
+			}
+
+			return normalizedName.ToLower();
 		}
 
 		/// <summary>
