@@ -5,9 +5,9 @@ This is the home for the appstore service used by SDL Trados Studio 2021 onwards
 
 1. [Intro](#intro)
 2. [Getting started](#getting-started)
-3. [How to configure the service](#service-cofig)
-4. [How to run the service](#service-run)
-5. [How to host a service on IIS](#service-IIS)
+3. [How to configure the service](#how-to-configure-the-service)
+4. [How to run the service](#how-to-run-the-service)
+5. [How to host a service on IIS](#how-to-host-a-service-on-iis)
 
 ## Intro
 This service allows users to create a **Private AppStore** which can be used in SDL Trados Studio to install and update plugins whether they are released on the AppStore web site or not.
@@ -39,11 +39,31 @@ In order to use the Azure deploy mode you need to add the Azure **Storage Accoun
 #### System environment variables
 If you choose the add the settings in the system variables please make sure you remove the **ConfigurationSettings object** from the **appsettings** file (if you had added it) and create the following **Environment Variables**: 
 ```
-1. APPSTOREINTEGRATION_BLOBNAME (blob name value should only contain lower case letters)
+1. APPSTOREINTEGRATION_BLOBNAME
 2. APPSTOREINTEGRATION_CONFIGFILENAME
 3. APPSTOREINTEGRATION_STORAGE_ACCOUNTKEY
 4. APPSTOREINTEGRATION_STORAGE_ACCOUNTNAME
+5. APPSTOREINTEGRATION_MAPPINGFILENAME (Not mandatory. This variable is used for Name mapping feature)
 ```
+**Blob name rules** 
+
+Azure has following validation rules for Blob name:
+```
+- It should contain only lower case letters, letters and digits. No special characters are allowed.
+- Minimum required lenght is 3
+```
+Appstore service by default change the blob name to follow the Azure requirements:
+```
+1. If the blob name is not provider the default name used is **defaultblobname**.
+2. If the choosed name contains special characters they'll stripped out.
+3. Blob name will be converted to lower case.
+4. If the name doesn't have more that 3 letters we'll add "appstore" to choosen name.
+For example: 
+Name selected: private_appstore_Blob this name will be transformed by the service in -> privateappstoreblob
+Name selected: PRIVATEstore -> privatestore
+Name selected: abc -> abcappstore
+```
+
 The **ConnectionStrings** section of the **appsettings** can also be set as an environment variable.
 
 ### ServerFilePath and NetworkFilePath Deploy mode
@@ -52,8 +72,9 @@ In order to use one of these deploy options in the **appsettings.json**, or in t
 ```
 //Replace with the local path on the server where the json with the plugins info is saved
   "ConfigurationSettings": {
-    "LocalFolderPath": "\\PluginsConfig",
-	"ConfigFileName": "pluginsConfig.json"
+	"LocalFolderPath": "\\PluginsConfig",
+	"ConfigFileName": "pluginsConfig.json",
+	"MappingFileName": "mappingFile.json" // json file where the old name of the plugin is mapped with the new one (Used in Trados Studio to avoid duplicated plugins after a plugin name is changed)
   }
   //If the folder or file does not exist in the specified location they'll be created
   ```
