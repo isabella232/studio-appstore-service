@@ -60,6 +60,7 @@ namespace AppStoreIntegrationService.Repository
 
 		public async Task<List<NameMapping>> GetNameMappingsFromContainer()
 		{
+		    if (_nameMappingsBlockBlob is null) return new List<NameMapping>();
 			var containterContent = await _nameMappingsBlockBlob.DownloadTextAsync(Encoding.UTF8, null, _blobRequestOptions, null);
 			var stream = new MemoryStream();
 
@@ -162,12 +163,16 @@ namespace AppStoreIntegrationService.Repository
 		/// </summary>
 		private void SetCloudBlockBlobs()
 		{
-			_pluginsListBlockBlob= GetBlockBlobReference(_configurationSettings.ConfigFileName);
+			if (!string.IsNullOrEmpty(_configurationSettings.ConfigFileName))
+			{
+				_pluginsListBlockBlob = GetBlockBlobReference(_configurationSettings.ConfigFileName);
 
-			var backupFileName = $"{Path.GetFileNameWithoutExtension(_configurationSettings.ConfigFileName)}_backupFile.json";
-			_pluginsBackupBlockBlob = GetBlockBlobReference(backupFileName);
+				var backupFileName = $"{Path.GetFileNameWithoutExtension(_configurationSettings.ConfigFileName)}_backupFile.json";
+				_pluginsBackupBlockBlob = GetBlockBlobReference(backupFileName);
+			}
 
-			_nameMappingsBlockBlob =GetBlockBlobReference(_configurationSettings.MappingFileName);
+			if (!string.IsNullOrEmpty(_configurationSettings.MappingFileName))
+				_nameMappingsBlockBlob =GetBlockBlobReference(_configurationSettings.MappingFileName);
 		}
 
 		private CloudBlockBlob GetBlockBlobReference(string fileName)
