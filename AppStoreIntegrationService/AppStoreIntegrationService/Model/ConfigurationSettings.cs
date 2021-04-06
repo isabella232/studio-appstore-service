@@ -41,10 +41,15 @@ namespace AppStoreIntegrationService.Model
 					break;
 			}
 
-			NameMappingsFilePath = Path.Combine(ConfigFolderPath, MappingFileName);
-			LocalPluginsConfigFilePath = Path.Combine(ConfigFolderPath, ConfigFileName);
+			if (!string.IsNullOrEmpty(MappingFileName))
+				NameMappingsFilePath = Path.Combine(ConfigFolderPath, MappingFileName);
 
-			ConfigFileBackUpPath = Path.Combine(ConfigFolderPath, $"{Path.GetFileNameWithoutExtension(ConfigFileName)}_backup.json");
+			if (!string.IsNullOrEmpty(ConfigFileName))
+			{
+				LocalPluginsConfigFilePath = Path.Combine(ConfigFolderPath, ConfigFileName);
+				ConfigFileBackUpPath = Path.Combine(ConfigFolderPath, $"{Path.GetFileNameWithoutExtension(ConfigFileName)}_backup.json");
+			}
+
 			await CreateConfigurationFiles();
 		}
 
@@ -53,17 +58,17 @@ namespace AppStoreIntegrationService.Model
 			if (!string.IsNullOrEmpty(ConfigFolderPath))
 			{
 				Directory.CreateDirectory(ConfigFolderPath);
-				if (!File.Exists(LocalPluginsConfigFilePath))
+				if (!string.IsNullOrEmpty(LocalPluginsConfigFilePath) && !File.Exists(LocalPluginsConfigFilePath))
 				{
 					await File.Create(LocalPluginsConfigFilePath).DisposeAsync();
 				}
 
-				if (!File.Exists(NameMappingsFilePath))
+				if (!string.IsNullOrEmpty(NameMappingsFilePath) && !File.Exists(NameMappingsFilePath))
 				{
 					await File.Create(NameMappingsFilePath).DisposeAsync();
 				}
 
-				if (!File.Exists(ConfigFileBackUpPath))
+				if (!string.IsNullOrEmpty(ConfigFileBackUpPath) && !File.Exists(ConfigFileBackUpPath))
 				{
 					await File.Create(ConfigFileBackUpPath).DisposeAsync();
 				}

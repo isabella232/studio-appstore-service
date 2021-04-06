@@ -25,6 +25,7 @@ namespace AppStoreIntegrationService.Repository
 			_nameMappings.Clear();
 			if (_configurationSettings.DeployMode != Enums.DeployMode.AzureBlob)
 			{
+				if (string.IsNullOrEmpty(_configurationSettings.NameMappingsFilePath)) return new List<NameMapping>();
 				var localMappings = await ReadLocalNameMappings(_configurationSettings.NameMappingsFilePath);
 				_nameMappings.AddRange(localMappings);
 			}
@@ -34,7 +35,9 @@ namespace AppStoreIntegrationService.Repository
 				_nameMappings.AddRange(azureMappings);
 			}
 
-			return pluginsNames.Select(pluginName => _nameMappings.FirstOrDefault(n => n.OldName.Equals(pluginName))).Where(mapping => mapping != null);
+		    return
+		        pluginsNames.Select(pluginName => _nameMappings.FirstOrDefault(n => n.OldName.Equals(pluginName))).Where(
+		            mapping => mapping != null);
 		}
 
 		public async Task<List<NameMapping>> ReadLocalNameMappings(string nameMappingsFilePath)
