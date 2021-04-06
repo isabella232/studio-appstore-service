@@ -42,7 +42,7 @@ stages:
 
 - stage: Deploy_Beta
   displayName: 'Deploy to Beta'
-  condition: ne(variables['Build.Reason'], 'PullRequest')
+  condition: and(succeeded(), eq(variables['DEPLOY_BETA'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: Do_Deploy
     steps:
@@ -62,7 +62,7 @@ stages:
 
 - stage: Deploy_Trial
   displayName: 'Deploy to Trial'
-  condition: ne(variables['Build.Reason'], 'PullRequest')
+  condition: and(succeeded(), eq(variables['DEPLOY_TRIAL'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: Do_Deploy
     steps:
