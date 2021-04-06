@@ -21,6 +21,9 @@ In the **release section** there is an archive available for the latest version 
 3. A folder called *PluginsConfig* which contains an example of the json file used by the Service. 
 4. A folder called *SettingsFileExample* which has 3 files containing the settings needed by the service based on the Deploy Mode.
 
+For the latest release of the service **SqlLocalDB** must be installed on the machine. This  dependency was introduce when we added support for Authentication/Authorization.
+This dependency can be downloaded from: https://www.microsoft.com/en-us/download/details.aspx?id=42299
+
 ## How to configure the service
 The service can be configured to read the **json file with the plugins info** in 3 ways:
 1. From an **Azure Storage** account. That means the json file is stored in a Blob in Azure.
@@ -99,6 +102,7 @@ If you don't want to specify this property in the file the following properties 
 - Open a comand prompt window and navigate to the folder where the server is located. 
 - Type the following command **AppStoreIntegrationService.exe**
 
+
 **If you get an HTTPS error message in the console when trying to start the service**
 
 - execute ```dotnet dev-certs https --trust```
@@ -120,5 +124,5 @@ to
 ```
 "AppStoreIntegrationServiceContextConnection": "Server=localhost\\SQLEXPRESS;Database=AppStoreIntegrationAuthentication;Trusted_Connection=True;"
 ```
-
+Make sure you have installed SQL Express on your server: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
 
