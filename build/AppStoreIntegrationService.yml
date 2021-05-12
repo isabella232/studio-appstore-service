@@ -1,3 +1,4 @@
+trigger: none
 pr:
 - master
 
@@ -40,7 +41,8 @@ stages:
 
 - stage: Deploy_Beta
   displayName: 'Deploy to Beta'
-  condition: and(succeeded(), eq(variables['DEPLOY_BETA'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn: BuildAndTest
+  condition: and(succeeded('BuildAndTest'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: Do_Deploy
     steps:
@@ -60,7 +62,8 @@ stages:
 
 - stage: Deploy_Trial
   displayName: 'Deploy to Trial'
-  condition: and(succeeded(), eq(variables['DEPLOY_TRIAL'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn: BuildAndTest
+  condition: and(succeeded('BuildAndTest'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: Do_Deploy
     steps:
@@ -80,7 +83,8 @@ stages:
 
 - stage: Deploy_Release
   displayName: 'Deploy to Production'
-  condition: and(succeeded(), eq(variables['DEPLOY_RELEASE'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn: BuildAndTest
+  condition: and(succeeded('BuildAndTest'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: Do_Deploy
     steps:
