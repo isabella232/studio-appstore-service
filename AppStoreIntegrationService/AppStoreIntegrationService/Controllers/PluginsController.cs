@@ -14,7 +14,6 @@ namespace AppStoreIntegrationService.Controllers
 	[Route("[controller]")]
 	[Route("")]
 	[Produces(MediaTypeNames.Application.Json)]
-	[Authorize]
 	public class PluginsController : Controller
 	{
 		public IPluginRepository PluginRepository { get; set; }
@@ -28,7 +27,6 @@ namespace AppStoreIntegrationService.Controllers
 		}
 
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		[AllowAnonymous]
 		[ResponseCache(Duration = 540, Location = ResponseCacheLocation.Any,VaryByQueryKeys =new[] {"*"})]
 		public async Task<IActionResult> Get([FromQuery]PluginFilter filter)
 		{
@@ -52,33 +50,6 @@ namespace AppStoreIntegrationService.Controllers
 			return Ok(pluginsList);
 		}
 
-		[HttpPut]
-		public async Task<IActionResult> PutPrivatePlugin(PrivatePlugin plugin)
-		{
-			try
-			{
-				await PluginRepository.UpdatePrivatePlugin(plugin);
-				return StatusCode(StatusCodes.Status200OK);
-			}catch(Exception ex)
-			{
-				return Json(new { Success = false, ex.Message });
-			}
-		}
-
-		[HttpPost("/addPlugin")]
-		public async Task<IActionResult> PostAddPlugin(PrivatePlugin plugin)
-		{
-			try
-			{
-				await PluginRepository.AddPrivatePlugin(plugin);
-				return StatusCode(StatusCodes.Status200OK);
-			}
-			catch (Exception ex)
-			{
-				return Json(new { Success = false, ex.Message });
-			}
-		}
-
 		[HttpGet("/defaultIcon")]
 		public IActionResult GetDefaultIcon()
 		{
@@ -86,20 +57,6 @@ namespace AppStoreIntegrationService.Controllers
 			var host = _contextAccessor.HttpContext?.Request?.Host.Value;
 			var iconPath = $"{scheme}://{host}/images/plugin.ico";
 			return Ok(iconPath);
-		}
-
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> DeletePlugin(int id)
-		{
-			try
-			{
-				await PluginRepository.RemovePlugin(id);
-				return StatusCode(StatusCodes.Status200OK);
-			}
-			catch (Exception ex)
-			{
-				return Json(new { Success = false, ex.Message });
-			}
 		}
 	}
 }

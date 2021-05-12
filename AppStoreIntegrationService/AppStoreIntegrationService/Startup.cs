@@ -17,8 +17,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AppStoreIntegrationService.Controllers;
-using AppStoreIntegrationService.Data;
-using Microsoft.AspNetCore.Identity;
 
 namespace AppStoreIntegrationService
 {
@@ -43,8 +41,8 @@ namespace AppStoreIntegrationService
 	        IServiceProvider serviceProvider = services.BuildServiceProvider();
 	        var env = serviceProvider.GetService<IWebHostEnvironment>();
 
-	        var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
-	        context.Database.EnsureCreated();
+	        //var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
+	        //context.Database.EnsureCreated();
 
 			var configurationSettings = GetConfigurationSettings(env, deployMode).Result;
 			ConfigureHttpClient(services);
@@ -86,8 +84,8 @@ namespace AppStoreIntegrationService
 		        options.AddPolicy("IsAdmin", policy => policy.RequireRole("Administrator"));
 	        });
 
-	        services.AddRazorPages()
-		        .AddRazorPagesOptions(options => { options.Conventions.AddPageRoute("/Edit", "edit"); });
+	        //services.AddRazorPages()
+		       // .AddRazorPagesOptions(options => { options.Conventions.AddPageRoute("/Edit", "edit"); });
         }
 
         private static void ConfigureHttpClient(IServiceCollection services)
