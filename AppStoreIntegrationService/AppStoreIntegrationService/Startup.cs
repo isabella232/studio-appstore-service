@@ -8,11 +8,14 @@ using Microsoft.Extensions.Hosting;
 using System.IO.Compression;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Net;
 using static AppStoreIntegrationService.Enums;
 using AppStoreIntegrationService.Model;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using AppStoreIntegrationService.Controllers;
 using AppStoreIntegrationService.Data;
 using Microsoft.AspNetCore.Identity;
@@ -31,84 +34,105 @@ namespace AppStoreIntegrationService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //Read the deploy mode from appsettings.json
-            var settingsDeployMode = Configuration.GetValue<string>("DeployMode");
-            Enum.TryParse(settingsDeployMode, out DeployMode deployMode);
+	        //Read the deploy mode from appsettings.json
+	        var settingsDeployMode = Configuration.GetValue<string>("DeployMode");
+	        Enum.TryParse(settingsDeployMode, out DeployMode deployMode);
 
-            //Read the web host enviroment in case the service is set on LocalFilePath
-            //we'll need to read the json file with the plugins details from local path
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
-            var env = serviceProvider.GetService<IWebHostEnvironment>();
+	        //Read the web host enviroment in case the service is set on LocalFilePath
+	        //we'll need to read the json file with the plugins details from local path
+	        IServiceProvider serviceProvider = services.BuildServiceProvider();
+	        var env = serviceProvider.GetService<IWebHostEnvironment>();
 
-            var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
-            context.Database.EnsureCreated();
+	        var context = serviceProvider.GetRequiredService<AppStoreIntegrationServiceContext>();
+	        context.Database.EnsureCreated();
 
-            var configurationSettings = new ConfigurationSettings();
+			var configurationSettings = GetConfigurationSettings(env, deployMode).Result;
+			ConfigureHttpClient(services);
 
-            //Read from appsettings if exists 
-            var section = Configuration.GetSection("ConfigurationSettings");
-            if (section.Exists())
-            {
-                Configuration.Bind("ConfigurationSettings", configurationSettings);
-            }
-            else
-            {
-                //Read from environment variables
-                configurationSettings.LoadVariables();
-            }
+			services.AddMvc();
 
-            services.AddMvc();
+	        services.AddHttpContextAccessor();
+	        services.Configure<GzipCompressionProviderOptions>(options =>
+	        {
+		        options.Level = CompressionLevel.Optimal;
+	        });
 
-            services.AddHttpContextAccessor();
-            services.Configure<GzipCompressionProviderOptions>(options =>
-            {
-                options.Level = CompressionLevel.Optimal;
-            });
+	        if (!string.IsNullOrEmpty(configurationSettings.InstrumentationKey))
+	        {
+		        services.AddApplicationInsightsTelemetry();
+		        new TelemetryClient(new TelemetryConfiguration(configurationSettings.InstrumentationKey)).TrackEvent(
+			        "Application started");
+	        }
 
-            if (!string.IsNullOrEmpty(configurationSettings.InstrumentationKey))
-            {
-                services.AddApplicationInsightsTelemetry();
-                new TelemetryClient(new TelemetryConfiguration(configurationSettings.InstrumentationKey)).TrackEvent("Application started");
-            }
+	        services.AddResponseCompression(options =>
+	        {
+		        options.EnableForHttps = true;
+		        options.Providers.Add<GzipCompressionProvider>();
+	        });
 
-            services.AddResponseCompression(options =>
-            {
-                options.EnableForHttps = true;
-                options.Providers.Add<GzipCompressionProvider>();
-            });
+	        services.AddResponseCaching();
+	        services.AddTransient<PluginsController, PluginsController>();
+	        services.AddTransient<CategoriesController, CategoriesController>();
+	        services.AddTransient<NamesController, NamesController>();
 
-            services.AddResponseCaching();
-            services.AddTransient<PluginsController, PluginsController>();
-            services.AddTransient<CategoriesController, CategoriesController>();
-            services.AddHttpContextAccessor();
+	        services.AddHttpContextAccessor();
 
-            //All the methods related to Azure blob (creates or read for release/demo deploy mode the files with plugins details which we'll be displayed in Studio
-            var azureRepository = new AzureRepository(deployMode, configurationSettings);
-            var pluginRepository = new PluginRepository(azureRepository, env, configurationSettings);
+	        services.AddSingleton<IAzureRepository,AzureRepository>();
+	        services.AddSingleton<INamesRepository,NamesRepository>();
+	        services.AddSingleton<IConfigurationSettings>(configurationSettings);
 
-            services.AddSingleton<IAzureRepository>(azureRepository);
-            services.AddSingleton<IPluginRepository>(pluginRepository);
+	        services.AddAuthorization(options =>
+	        {
+		        options.AddPolicy("IsAdmin", policy => policy.RequireRole("Administrator"));
+	        });
 
-            services.AddHttpClient("HttpClientWithSSLUntrusted").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                ClientCertificateOptions = ClientCertificateOption.Manual,
-                ServerCertificateCustomValidationCallback =
-            (httpRequestMessage, cert, cetChain, policyErrors) =>
-            {
-                return true;
-            }
-            });
+	        services.AddRazorPages()
+		        .AddRazorPagesOptions(options => { options.Conventions.AddPageRoute("/Edit", "edit"); });
+        }
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("IsAdmin", policy => policy.RequireRole("Administrator"));
-            });
+        private static void ConfigureHttpClient(IServiceCollection services)
+        {
+	        services.AddHttpClient("HttpClientWithSSLUntrusted").ConfigurePrimaryHttpMessageHandler(() =>
+		        new HttpClientHandler
+		        {
+			        ClientCertificateOptions = ClientCertificateOption.Manual,
+			        ServerCertificateCustomValidationCallback =
+				        (httpRequestMessage, cert, cetChain, policyErrors) => true
+		        });
 
-            services.AddRazorPages()
-                .AddRazorPagesOptions(options =>
-                {
-                    options.Conventions.AddPageRoute("/Edit", "edit");
-                });
+	        services.AddHttpClient<IPluginRepository, PluginRepository>(l =>
+	        {
+		        l.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+		        l.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+		        l.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+		        l.DefaultRequestHeaders.Connection.Add("Keep-Alive");
+		        l.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
+		        l.DefaultRequestHeaders.TransferEncodingChunked = false;
+		        l.Timeout = TimeSpan.FromMinutes(5);
+	        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+	        {
+		        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+	        });
+        }
+
+        private async Task<ConfigurationSettings> GetConfigurationSettings(IWebHostEnvironment env, DeployMode deployMode)
+        {
+	        var configurationSettings = new ConfigurationSettings(deployMode);
+	        //Read from appsettings if exists 
+	        var section = Configuration.GetSection("ConfigurationSettings");
+            //Bind pre-defined properties
+	        if (section.Exists())
+	        {
+		        Configuration.Bind("ConfigurationSettings", configurationSettings);
+	        }
+			else
+	        {
+		        //Read from environment variables
+		        configurationSettings.LoadVariables();
+	        }
+	        await configurationSettings.SetFilePathsProperties(env);
+
+			return configurationSettings;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

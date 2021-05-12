@@ -2,13 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Net;
-using Microsoft.AspNetCore.Hosting;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -23,52 +20,16 @@ namespace AppStoreIntegrationService.Repository
 		private const int CategoryId_FileFiltersConverters = 2;
 
 		private readonly Timer _pluginsCacheRenewer;
-		private readonly ConfigurationSettings _configurationSettings;
+		private readonly IConfigurationSettings _configurationSettings;
 		private readonly IAzureRepository _azureRepository;
-		private readonly string _localPluginsConfigFilePath;
-		private readonly string _backupConfigFile;
 		private List<CategoryDetails> _availableCategories;
+		private readonly HttpClient _httpClient;
 
-		public PluginRepository(IAzureRepository azureRepository, IWebHostEnvironment webHostEnvironment, ConfigurationSettings configurationSettings)
+		public PluginRepository(IAzureRepository azureRepository, IConfigurationSettings configurationSettings,HttpClient httpClient)
 		{
 			_azureRepository = azureRepository;
 			_configurationSettings = configurationSettings;
-			var configFolderPath = _configurationSettings.LocalFolderPath;
-			var fileName = _configurationSettings.ConfigFileName;
-			var backupFileName = $"{Path.GetFileNameWithoutExtension(fileName)}_backup.json";
-
-			if (!string.IsNullOrEmpty(configFolderPath) && !string.IsNullOrEmpty(fileName))
-			{
-				var folderPath = string.Empty;
-				var deployMode = _azureRepository.GetDeployMode();
-				if (deployMode == Enums.DeployMode.ServerFilePath)
-				{
-					folderPath = $"{webHostEnvironment.ContentRootPath}{configFolderPath}";
-				}
-				if (deployMode == Enums.DeployMode.NetworkFilePath)
-				{
-					folderPath = configFolderPath;
-				}
-				if (!string.IsNullOrEmpty(folderPath))
-				{
-					Directory.CreateDirectory(folderPath);
-					_localPluginsConfigFilePath = Path.Combine(folderPath, fileName);
-					_backupConfigFile = Path.Combine(folderPath, backupFileName);
-
-					if (!string.IsNullOrEmpty(_localPluginsConfigFilePath))
-					{
-						if (!File.Exists(_localPluginsConfigFilePath))
-						{
-							File.Create(_localPluginsConfigFilePath).Dispose();
-						}
-						if (!File.Exists(_backupConfigFile))
-						{
-							File.Create(_backupConfigFile).Dispose();
-						}
-					}
-				}
-			}
-
+			_httpClient = httpClient;
 			_pluginsCacheRenewer = new Timer(OnCacheExpiredCallback,
 				this,
 				TimeSpan.FromMinutes(RefreshDuration),
@@ -79,9 +40,7 @@ namespace AppStoreIntegrationService.Repository
 
 		public async Task<List<PluginDetails>> GetAll(string sortOrder)
 		{
-			List<PluginDetails> pluginsList = null;
-
-			pluginsList = await GetPlugins();
+			var pluginsList =await GetPlugins();
 
 			if (pluginsList == null || pluginsList?.Count == 0)
 			{
@@ -99,52 +58,38 @@ namespace AppStoreIntegrationService.Repository
 
 		private async Task<List<PluginDetails>> GetPlugins()
 		{
-			if (_azureRepository.GetDeployMode() != Enums.DeployMode.AzureBlob) //json file is saved locally on server
+			if (_configurationSettings.DeployMode != Enums.DeployMode.AzureBlob) //json file is saved locally on server
 			{
 				return await GetPluginsListFromLocalFile(); // read plugins from json file
 			}
-			else
-			{
-				return await _azureRepository.GetPluginsListFromContainer(); // json file is on Azure Blob
-			}
+
+			return await _azureRepository.GetPluginsListFromContainer(); // json file is on Azure Blob
 		}
 
 		private async Task<List<PluginDetails>> GetPluginsListFromLocalFile()
 		{
-			var pluginsDetails = await File.ReadAllTextAsync(_localPluginsConfigFilePath);
+			var pluginsDetails = await File.ReadAllTextAsync(_configurationSettings.LocalPluginsConfigFilePath);
 
 			return JsonConvert.DeserializeObject<PluginsResponse>(pluginsDetails)?.Value;
 		}
 
 		private async Task RefreshCacheList()
 		{
-			if (!string.IsNullOrEmpty(_configurationSettings.OosUri) && _azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (!string.IsNullOrEmpty(_configurationSettings.OosUri) && _configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
-				var handler = new HttpClientHandler
-				{
-					AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-				};
-				var httpClient = new HttpClient(handler)
-				{
-					Timeout = TimeSpan.FromMinutes(5)
-				};
-				httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-				httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-				httpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-				httpClient.DefaultRequestHeaders.Connection.Add("Keep-Alive");
-				httpClient.DefaultRequestHeaders.Add("Connection", "Keep-Alive");
-				httpClient.DefaultRequestHeaders.TransferEncodingChunked = false;
-
 				var httpRequestMessage = new HttpRequestMessage
 				{
 					Method = HttpMethod.Get,
 					RequestUri = new Uri($"{_configurationSettings.OosUri}/Apps?$expand=Categories,Versions($expand=SupportedProducts)")
 				};
-				var pluginsResponse = await httpClient.SendAsync(httpRequestMessage);
+				var pluginsResponse = await _httpClient.SendAsync(httpRequestMessage);
 				if (pluginsResponse.IsSuccessStatusCode)
 				{
-					var contentStream = await pluginsResponse.Content?.ReadAsStreamAsync();
-					await _azureRepository.UploadToContainer(contentStream);
+					if (pluginsResponse.Content != null)
+					{
+						var contentStream = await pluginsResponse.Content?.ReadAsStreamAsync();
+						await _azureRepository.UploadToContainer(contentStream);
+					}
 				}
 			}
 		}
@@ -289,12 +234,21 @@ namespace AppStoreIntegrationService.Repository
 		private List<PluginDetails> FilterByVersion(List<PluginDetails> pluginsList, string studioVersion)
 		{
 			var plugins = new List<PluginDetails>();
+
+			var expression = new Regex("\\d+", RegexOptions.IgnoreCase);
+			var versionNumber = expression.Match(studioVersion);
+			var oldTradosName = $"SDL Trados Studio {versionNumber.Value}";
+			var rebrandedStudioName = $"Trados Studio {versionNumber.Value}";
+
 			foreach (var plugin in pluginsList)
 			{
 				foreach (var pluginVersion in plugin.Versions)
 				{
 					//there are some apps in the oos which are working for all studio version. So the field is "SDL Trados Studio" without any studio specific version
-					var version = pluginVersion.SupportedProducts?.FirstOrDefault(s => s.ProductName.Equals(studioVersion) || s.ProductName.Equals("SDL Trados Studio"));
+					var version = pluginVersion.SupportedProducts?.FirstOrDefault(s =>
+						s.ProductName.Equals(oldTradosName) || s.ProductName.Equals(rebrandedStudioName)
+						                                    || s.ProductName.Equals("SDL Trados Studio") ||
+						                                    s.ProductName.Equals("Trados Studio"));
 					if (version != null)
 					{
 						plugins.Add(plugin);
@@ -302,6 +256,7 @@ namespace AppStoreIntegrationService.Repository
 					}
 				}
 			}
+
 			return plugins;
 		}
 
@@ -411,14 +366,14 @@ namespace AppStoreIntegrationService.Repository
 			};
 
 			var updatedPluginsText = JsonConvert.SerializeObject(pluginResponse);
-			if (_azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (_configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
 				await _azureRepository.BackupFile(updatedPluginsText);
 			}
 			else
 			{
 				//json file is saved locally on server or in File Newtork location
-				await File.WriteAllTextAsync(_backupConfigFile, updatedPluginsText);
+				await File.WriteAllTextAsync(_configurationSettings.ConfigFileBackUpPath, updatedPluginsText);
 			}
 		}
 
@@ -430,14 +385,14 @@ namespace AppStoreIntegrationService.Repository
 			};
 			var updatedPluginsText = JsonConvert.SerializeObject(pluginResponse);
 			
-			if (_azureRepository.GetDeployMode() == Enums.DeployMode.AzureBlob)
+			if (_configurationSettings.DeployMode == Enums.DeployMode.AzureBlob)
 			{
 				await _azureRepository.UpdatePluginsFileBlob(updatedPluginsText);
 			}
 			else
 			{
 				//json file is saved locally on server or in File Newtork location
-				await File.WriteAllTextAsync(_localPluginsConfigFilePath, updatedPluginsText);
+				await File.WriteAllTextAsync(_configurationSettings.LocalPluginsConfigFilePath, updatedPluginsText);
 			}
 		}
 

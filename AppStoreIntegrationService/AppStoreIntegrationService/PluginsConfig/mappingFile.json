@@ -1,0 +1,12 @@
+[
+  {
+    "id": "1",
+    "newName": "Trados TTS",
+    "oldName": "SDL TTS"
+  },
+  {
+    "id": "2",
+    "newName": "Trados MT Cloud",
+    "oldName": "SDL MT Cloud"
+  }
+]

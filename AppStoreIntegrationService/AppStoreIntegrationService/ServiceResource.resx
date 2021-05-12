@@ -138,6 +138,9 @@
   <data name="LocalFolderPath" xml:space="preserve">
     <value>APPSTOREINTEGRATION_LOCAL_FOLDERPATH</value>
   </data>
+  <data name="MappingFileName" xml:space="preserve">
+    <value>APPSTOREINTEGRATION_MAPPINGFILENAME</value>
+  </data>
   <data name="OosUri" xml:space="preserve">
     <value>APPSTOREINTEGRATION_OOS_URI</value>
   </data>
