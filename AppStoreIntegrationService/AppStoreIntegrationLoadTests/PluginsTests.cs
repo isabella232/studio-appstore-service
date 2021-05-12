@@ -17,7 +17,7 @@ namespace AppStoreIntegrationLoadTests
         [TestMethod]
         public void GetPlugins()
         {
-            var client = new RestClient("https://appstoreintegrationservice20191104013058.azurewebsites.net");
+            var client = new RestClient("https://studio-appstore-api.azurewebsites.net/");
             var request = new RestRequest("/plugins", Method.GET);
             request.AddHeader("Content-Type", "application/json");
 
