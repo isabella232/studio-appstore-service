@@ -21,7 +21,7 @@ In the **release section** there is an archive available for the latest version 
 3. A folder called *PluginsConfig* which contains an example of the json file used by the Service. 
 4. A folder called *SettingsFileExample* which has 3 files containing the settings needed by the service based on the Deploy Mode.
 
-For the latest release of the service **SqlLocalDB** must be installed on the machine. This  dependency was introduce when we added support for Authentication/Authorization.
+For the latest release of the service, **SqlLocalDB** must be installed on the machine. This  dependency was introduced when we added support for Authentication/Authorization.
 This dependency can be downloaded from: https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi
 
 ## How to configure the service
