@@ -107,7 +107,7 @@ If you don't want to specify this property in the file the following properties 
 
 - execute ```dotnet dev-certs https --trust```
 
-- if that command is not working either, check to see if you've got the .NET Core installed by executing ```dotnet --info``` which should show you details regarding the .NET installation on your PC. You should have .NET Core 3.1 or greater, installed.
+- if that command is not working either, check to see if you've got the .NET Core installed by executing ```dotnet --info``` which should show you details regarding the .NET installation on your PC. You should have .NET Core 3.1 SDK or greater, installed.
 
 - if you don't, then go to https://dotnet.microsoft.com/download#windowsvs2015 and install it
 - restart the PC and execute ```dotnet dev-certs https --trust``` again
